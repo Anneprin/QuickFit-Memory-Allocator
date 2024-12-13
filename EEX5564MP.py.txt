@@ -1,0 +1,57 @@
+class QuickFitMemoryAllocator:
+    def __init__(self, block_sizes):
+        """Initialize the allocator with predefined block sizes."""
+        self.free_lists = {size: [] for size in block_sizes}
+
+    def allocate(self, size):
+        """Allocate memory of the closest matching block size."""
+        for block_size in sorted(self.free_lists.keys()):
+            if size <= block_size and self.free_lists[block_size]:
+                block = self.free_lists[block_size].pop()
+                print(f"Allocated block of size {block_size}.")
+                return block
+        print("No suitable block found. Allocation failed.")
+        return None
+
+    def deallocate(self, block_size, block):
+        """Deallocate a memory block and return it to the free list."""
+        if block_size in self.free_lists:
+            self.free_lists[block_size].append(block)
+            print(f"Deallocated block of size {block_size}.")
+        else:
+            print("Invalid block size. Deallocation failed.")
+
+    def add_free_block(self, block_size, block):
+        """Add a free block to the free list."""
+        if block_size in self.free_lists:
+            self.free_lists[block_size].append(block)
+
+    def display_memory_state(self):
+        """Display the current state of the free lists."""
+        print("Current Memory State:")
+        for size, blocks in self.free_lists.items():
+            print(f"Block Size {size}: {len(blocks)} free blocks")
+
+# Example usage
+if __name__ == "__main__":
+    # Define block sizes
+    block_sizes = [16, 32, 64, 128]
+    allocator = QuickFitMemoryAllocator(block_sizes)
+
+    # Add initial free blocks
+    for size in block_sizes:
+        for _ in range(5):
+            allocator.add_free_block(size, f"Block-{size}-{_}")
+
+    allocator.display_memory_state()
+
+    # Allocate memory
+    allocator.allocate(20)  # Should allocate a 32B block
+    allocator.allocate(70)  # Should allocate a 128B block
+
+    allocator.display_memory_state()
+
+    # Deallocate memory
+    allocator.deallocate(32, "Block-32-1")
+
+    allocator.display_memory_state()
